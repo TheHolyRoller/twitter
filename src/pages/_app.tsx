@@ -4,7 +4,9 @@ import { type AppType } from "next/app";
 
 import { api } from "~/utils/api";
 
-import "~/styles/globals.css";
+// import "~/styles/globals.css";
+import Head from "next/Head"; 
+import {SideNav} from '../components/SideNav'; 
 
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,
@@ -12,7 +14,23 @@ const MyApp: AppType<{ session: Session | null }> = ({
 }) => {
   return (
     <SessionProvider session={session}>
+      <Head>
+      <title>Twitter Clone</title>
+      <meta name="description" content='this is a twitter clone'/>
+      <link rel="icon" href="/favicon.ico" />
+      
+      </Head>
+      <div className="container mx-auto flex sm:pr-4 " > 
+      
+      <SideNav/> 
+      
+      
+      <div className="min-h-screen flex-grow border-x" >
       <Component {...pageProps} />
+      </div>
+
+      </div>
+      
     </SessionProvider>
   );
 };
