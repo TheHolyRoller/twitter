@@ -1,13 +1,45 @@
-import React from 'react'
+import {React, useState, useEffect, useRef, useReducer, useLayoutEffect, useCallback} from 'react'
 import Button from '../components/Button'; 
 import ProfileImage from '../components/ProfileImage'; 
 import {useSession, signOut, signIn} from "next-auth/react"; 
 
-function NewTweetForm() {
+
+// Create the types for style and scrollHeight here 
+
+
+function updateTextAreaSize(textArea?: HTMLTExtAreaElement){
+
+
+
+if(textArea == null )return
+textArea.style.height = "0" 
+textArea.style.height = `${textArea.scrollHeight}px`
+    
+}
+
+
+function Form(){
 
     const session  = useSession()
+    const [inputValue, setInputValue] = useState("");
+    const textAreaRef = useRef<HTMLTextAreaElement>(null)
+  const inputRef = useCallback((textArea:HTMLTextAreaElement) => {
+
+        updateTextAreaSize(textArea); 
+        textAreaRef.current = textArea; 
+        
+        
+        
+    },[]);
     
     
+useLayoutEffect(() => {
+  
+    updateTextAreaSize(textAreaRef.current)
+  
+  }, [inputValue])
+  
+
     if(session.status !== "authenticated") return 
     
     
@@ -16,8 +48,17 @@ function NewTweetForm() {
     
     <div className="flex gap-4" >
     
+    
     <ProfileImage url={session.data.user.image} /> 
-    <textarea label='input' type="text"  className="flex-grow resize-none overflow-hidden p-4 text-lg outline-none" > 
+    <textarea 
+    ref={inputRef}
+    style={{height: 0}}
+    value={inputValue}
+    
+    onChange={e => setInputValue(e.target.value)}
+    label='input' type="text" placeholder="x" className="flex-grow resize-none overflow-hidden p-4 text-lg outline-none" > 
+    
+    
     
     
     </textarea>
@@ -30,12 +71,25 @@ function NewTweetForm() {
     Tweet
     
     </Button>
-    {/* <button></button> */}
-    
+
     Form 
     
     </form>
+
   )
+    
+    
+}
+
+function NewTweetForm() {
+    
+    const session = useSession(); 
+    
+    if(session.status !== "authenticated") return null 
+
+    return <Form/> 
+    
+    
 }
 
 export default NewTweetForm
