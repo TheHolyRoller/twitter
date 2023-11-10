@@ -42,7 +42,7 @@ textArea.style.height = `${textArea.scrollHeight}px`
 
 function Form(){
 
-const session  = useSession()
+const session = useSession()
 
 const [inputValue, setInputValue] = useState("");
 
@@ -64,32 +64,31 @@ updateTextAreaSize(textAreaRef.current)
 
 }, [inputValue])
 
-//   This is causing the Get-static props error
+//  This is causing the Get-static props error
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
 
-const createTweet = api.tweet.create.useMutation({onSuccess: newTweet => {
 
-    console.log(newTweet); 
-    console.log('is this working ')
-    
-    
+const createTweet = api.tweet.create.useMutation({
+    onSuccess: (newTweet) => {
+      setInputValue("");
+
 }}); 
 
 
 
-if(session.status !== "authenticated") return
+
+if(session.status !== "authenticated") return null
 
 function handleSubmit(e: FormEvent){
 
 e.preventDefault();
 
-createTweet.mutate({content: inputValue});
-setInputValue("");
-
-
-
-
+// Put this into a try catch block 
+createTweet.mutate({ content: inputValue });   
+    setInputValue("");
+    console.error("This is not working ")
+    console.error('The connections is not working')
 }
 
 return (
