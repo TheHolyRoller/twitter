@@ -1,25 +1,23 @@
-import React from 'react'
-import Image from "next/Image"; 
+import Image from "next/image";
+import { VscAccount } from "react-icons/vsc";
 
 type ProfileImageProps = {
+  src?: string | null;
+  className?: string;
+};
 
-    src?: string | null 
-    className?: string 
-    
-}
 
-function ProfileImage({src, className=""}: 
-ProfileImageProps) {
+export function ProfileImage({ src, className = "" }: ProfileImageProps) {
   return (
-  
-  
-    <div className={`relative h-12 w-12 overflow-hidden rounded-full  ${className}  `}>
-    {src == null ? null : <Image src={scr} alt='alt' quality={100} fill  /> }
-    
-    ProfileImage
-    
+    <div
+      className={`relative h-12 w-12 overflow-hidden rounded-full ${className}`}
+    >
+      {src == null ? (
+        <div className="h-full w-full" >ac</div>
+        // <VscAccount className="h-full w-full" />
+      ) : (
+        <Image src={src} alt="Profile Image" quality={100} fill />
+      )}
     </div>
-  )
+  );
 }
-
-export default ProfileImage

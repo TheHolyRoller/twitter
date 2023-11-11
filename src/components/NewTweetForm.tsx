@@ -1,145 +1,102 @@
-'use client'
-
+import { useSession } from "next-auth/react";
 import {
-
-FormEvent,
-
-useCallback,
-
-useLayoutEffect,
-
-useRef,
-
-useState,
-
-useEffect
-
+  FormEvent,
+  useCallback,
+  useLayoutEffect,
+  useRef,
+  useState,
 } from "react";
+import { api } from "~/utils/api";
+import { Button } from "./Button";
+import { ProfileImage } from "./ProfileImage";
 
-import { useCreateTweet } from '../hooks/useCreateTweet';
-
-import { useMutation } from 'react-query';
-
-import Button from '../components/Button';
-
-import ProfileImage from '../components/ProfileImage';
-
-import {useSession, signOut, signIn} from "next-auth/react";
-
-// import { api } from "/utils/api";
-
-import { api } from "../utils/api";
-
-function updateTextAreaSize(textArea?: HTMLTExtAreaElement){
-
-if(textArea == null )return
-
-textArea.style.height = "0"
-
-textArea.style.height = `${textArea.scrollHeight}px`
-
+function updateTextAreaSize(textArea?: HTMLTextAreaElement) {
+  if (textArea == null) return;
+  textArea.style.height = "0";
+  textArea.style.height = `${textArea.scrollHeight}px`;
 }
 
-function Form(){
+export function NewTweetForm() {
+  const session = useSession();
+  if (session.status !== "authenticated") return null;
 
-const session = useSession()
+  return <Form />;
+}
 
-const [inputValue, setInputValue] = useState("");
+function Form() {
+  const session = useSession();
+  const [inputValue, setInputValue] = useState("");
+  const textAreaRef = useRef<HTMLTextAreaElement>();
+  const inputRef = useCallback((textArea: HTMLTextAreaElement) => {
+    updateTextAreaSize(textArea);
+    textAreaRef.current = textArea;
+  }, []);
+  const trpcUtils = api.useContext();
 
-const textAreaRef = useRef<HTMLTextAreaElement>(null)
+  useLayoutEffect(() => {
+    updateTextAreaSize(textAreaRef.current);
+  }, [inputValue]);
 
-const inputRef = useCallback((textArea:HTMLTextAreaElement) => {
-
-// const [createTweet, createTweetStatus] = useCreateTweet();
-
-updateTextAreaSize(textArea);
-
-textAreaRef.current = textArea;
-
-},[]);
-
-useLayoutEffect(() => {
-
-updateTextAreaSize(textAreaRef.current)
-
-}, [inputValue])
-
-//  This is causing the Get-static props error
-
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-
-
-const createTweet = api.tweet.create.useMutation({
+  const createTweet = api.tweet.create.useMutation({
     onSuccess: (newTweet) => {
       setInputValue("");
 
-}}); 
+      if (session.status !== "authenticated") return;
 
+      trpcUtils.tweet.infiniteFeed.setInfiniteData({}, (oldData) => {
+        if (oldData == null || oldData.pages[0] == null) return;
 
+        const newCacheTweet = {
+          ...newTweet,
+          likeCount: 0,
+          likedByMe: false,
+          user: {
+            id: session.data.user.id,
+            name: session.data.user.name || null,
+            image: session.data.user.image || null,
+          },
+        };
 
+        return {
+          ...oldData,
+          pages: [
+            {
+              ...oldData.pages[0],
+              tweets: [newCacheTweet, ...oldData.pages[0].tweets],
+            },
+            ...oldData.pages.slice(1),
+          ],
+        };
+      });
+    },
+  });
 
-if(session.status !== "authenticated") return null
+  if (session.status !== "authenticated") return null;
 
-function handleSubmit(e: FormEvent){
+  function handleSubmit(e: FormEvent) {
+    e.preventDefault();
 
-e.preventDefault();
+    createTweet.mutate({ content: inputValue });
+  }
+  
 
-// Put this into a try catch block 
-createTweet.mutate({ content: inputValue });   
-    setInputValue("");
-    console.error("This is not working ")
-    console.error('The connections is not working')
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="flex flex-col gap-2 border-b px-4 py-2"
+    >
+      <div className="flex gap-4">
+        <ProfileImage src={session.data.user.image} />
+        <textarea
+          ref={inputRef}
+          style={{ height: 0 }}
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          className="flex-grow resize-none overflow-hidden p-4 text-lg outline-none"
+          placeholder="What's happening?"
+        />
+      </div>
+      <Button className="self-end">Tweet</Button>
+    </form>
+  );
 }
-
-return (
-
-
-
-<form onSubmit={handleSubmit} className="flex flex-col gap-2 border-b px-4 py-2 " >
-
-<div className="flex gap-4" >
-
-<ProfileImage url={session.data.user.image} />
-
-<textarea
-
-ref={inputRef}
-
-style={{height: 0}}
-
-value={inputValue}
-
-onChange={e => setInputValue(e.target.value)}
-
-label='input' type="text" placeholder="x" className="flex-grow resize-none overflow-hidden p-4 text-lg outline-none" >
-
-</textarea>
-
-</div>
-
-<Button className="self-end" >
-
-Tweet
-
-</Button>
-
-Form
-
-</form>
-
-)
-
-}
-
-function NewTweetForm() {
-
-const session = useSession();
-
-if(session.status !== "authenticated") return null
-
-return <Form/>
-
-
-}
-
-export default NewTweetForm
