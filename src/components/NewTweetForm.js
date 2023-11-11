@@ -1,6 +1,6 @@
 import { useSession } from "next-auth/react";
 import {
-  FormEvent,
+  // FormEvent,
   useCallback,
   useLayoutEffect,
   useRef,
@@ -10,7 +10,8 @@ import { api } from "~/utils/api";
 import { Button } from "./Button";
 import { ProfileImage } from "./ProfileImage";
 
-function updateTextAreaSize(textArea?: HTMLTextAreaElement) {
+
+function updateTextAreaSize(textArea) {
   if (textArea == null) return;
   textArea.style.height = "0";
   textArea.style.height = `${textArea.scrollHeight}px`;
@@ -26,8 +27,8 @@ export function NewTweetForm() {
 function Form() {
   const session = useSession();
   const [inputValue, setInputValue] = useState("");
-  const textAreaRef = useRef<HTMLTextAreaElement>();
-  const inputRef = useCallback((textArea: HTMLTextAreaElement) => {
+  const textAreaRef = useRef();
+  const inputRef = useCallback((textArea) => {
     updateTextAreaSize(textArea);
     textAreaRef.current = textArea;
   }, []);
@@ -73,7 +74,8 @@ function Form() {
 
   if (session.status !== "authenticated") return null;
 
-  function handleSubmit(e: FormEvent) {
+  function handleSubmit(e) {
+    
     e.preventDefault();
 
     createTweet.mutate({ content: inputValue });
